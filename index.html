@@ -257,7 +257,7 @@ function exportarBackup(){
  const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='meu-negocio-facil-backup-'+hoje()+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
 function importarBackup(){document.getElementById('arquivoBackup').click();}
-function 
+fm
 async function carregarBackup(input){
  const arq=input.files&&input.files[0];
  if(!arq)return;
@@ -286,12 +286,7 @@ async function carregarBackup(input){
   try{
    localStorage.setItem(CHAVE,JSON.stringify(novo));
   }catch(erro){
-   alert('O Chrome não conseguiu salvar os dados. Os dados atuais foram preservados. Não apague nada.');
-   return;
-  }
-
-  dados=novo;
-  carregarTudo();
+   
   alert('Backup importado com sucesso!');
 
  }catch(e){
