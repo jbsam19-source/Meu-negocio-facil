@@ -1,0 +1,11 @@
+{
+  "name": "Meu Negócio Fácil",
+  "short_name": "Meu Negócio",
+  "description": "Controle simples para pequenos negócios",
+  ""start_url": "./index.html",,
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#14532d",
+  "background_color": "#ffffff"
+}

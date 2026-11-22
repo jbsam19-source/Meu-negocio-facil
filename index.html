@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meu Negócio Fácil</title>
+<style>
+*{box-sizing:border-box;font-family:Arial,sans-serif}
+body{margin:0;padding:12px;background:#f3f5f7;color:#222}
+h1,h2,h3{text-align:center;margin-top:8px}
+h1{font-size:24px}
+.card{background:#fff;padding:15px;border-radius:12px;margin:12px 0;box-shadow:0 2px 7px #0001}
+input,select,button{width:100%;padding:11px;margin:6px 0;border-radius:7px;border:1px solid #ccd1d7;font-size:16px}
+button{background:#198754;color:white;border:0;font-weight:bold;cursor:pointer}
+button.sec{background:#0d6efd}
+button.gray{background:#6c757d}
+button.danger{background:#dc3545}
+button:disabled{opacity:.55}
+label{display:block;margin-top:7px;font-weight:bold;font-size:14px}
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin:12px 0}
+.tab{padding:10px 4px;background:#e1e5e9;border-radius:7px;text-align:center;font-size:13px;font-weight:bold;cursor:pointer}
+.tab.ativo{background:#0d6efd;color:white}
+.oculto{display:none!important}
+table{width:100%;border-collapse:collapse;font-size:12px;min-width:460px}
+th,td{border:1px solid #ddd;padding:7px;text-align:left}
+th{background:#edf0f3}
+.tabela-wrap{overflow-x:auto}
+.vermelho{color:#c82333;font-weight:bold}.verde{color:#198754;font-weight:bold}
+.muted{color:#667085;font-size:13px}
+.resumo{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.resumo div{background:#f5f7fa;padding:10px;border-radius:8px}
+.valor{font-size:18px;font-weight:bold;display:block;margin-top:4px}
+.linha{display:flex;gap:8px}.linha>*{flex:1}
+#camera{width:100%;max-height:260px;background:#111;border-radius:8px}
+@media(max-width:420px){.tabs{grid-template-columns:repeat(3,1fr)}.tab{font-size:12px}}
+</style> <link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#14532d">
+</head>
+<body>
+<h1>🏪 Meu Negócio Fácil</h1>
+<p class="muted" style="text-align:center">Controle de vendas, estoque, fiado e caixa</p>
+
+<div class="tabs">
+ <div class="tab ativo" onclick="mudarAba('caixa',this)">Caixa</div>
+ <div class="tab" onclick="mudarAba('produtos',this)">Produtos</div>
+ <div class="tab" onclick="mudarAba('vendas',this)">Vendas</div>
+ <div class="tab" onclick="mudarAba('compras',this)">Compras</div>
+ <div class="tab" onclick="mudarAba('despesas',this)">Despesas</div>
+ <div class="tab" onclick="mudarAba('fiado',this)">Fiado</div>
+ <div class="tab" onclick="mudarAba('relatorio',this)">Relatório</div>
+</div>
+
+<section id="caixa" class="aba">
+ <div class="card">
+  <h2>💰 Registrar venda</h2>
+  <label>Produto</label><select id="selProduto"></select>
+  <label>Quantidade</label><input type="number" id="qtdVenda" min="1" step="1" value="1">
+  <label>Forma de pagamento</label>
+  <select id="pagamento"><option>Dinheiro</option><option>Pix</option><option>Cartão</option></select>
+  <label>Cliente (deixe vazio se não for fiado)</label><input id="clienteVenda" placeholder="Nome do cliente">
+  <button onclick="vender()">✅ Registrar venda</button>
+ </div>
+ <div class="card">
+  <h2>📊 Resumo de hoje</h2>
+  <div class="resumo">
+   <div>Vendas recebidas<span class="valor" id="resVendas">R$ 0,00</span></div>
+   <div>Fiados recebidos<span class="valor" id="resFiado">R$ 0,00</span></div>
+   <div>Despesas<span class="valor" id="resDespesas">R$ 0,00</span></div>
+   <div>Compras<span class="valor" id="resCompras">R$ 0,00</span></div>
+  </div>
+  <p><b>Saldo do dia:</b> <span id="resSaldo" class="valor">R$ 0,00</span></p>
+  <button onclick="fecharDia()">🔒 Registrar fechamento do dia</button>
+  <p class="muted">O fechamento registra um retrato do dia. Não apaga vendas, compras, despesas nem fiados.</p>
+ </div>
+</section>
+
+<section id="produtos" class="aba oculto">
+ <div class="card">
+  <h2>📦 Cadastrar produto</h2>
+  <label>Código de barras</label><input id="codProd" inputmode="numeric" placeholder="Digite ou leia o código">
+  <button class="sec" onclick="iniciarLeitor()">📷 Ler código pela câmera</button>
+  <video id="camera" class="oculto" playsinline></video>
+  <button class="gray oculto" id="pararCamera" onclick="pararLeitor()">Parar câmera</button>
+  <label>Nome</label><input id="nomeProd" placeholder="Nome do produto">
+  <div class="linha"><div><label>Custo (R$)</label><input type="number" step="0.01" id="custoProd"></div><div><label>Preço de venda (R$)</label><input type="number" step="0.01" id="vendaProd"></div></div>
+  <div class="linha"><div><label>Quantidade</label><input type="number" id="qtdProd" step="1"></div><div><label>Estoque mínimo</label><input type="number" id="minProd" step="1"></div></div>
+  <button onclick="cadastrarProduto()">➕ Salvar produto</button>
+ </div>
+ <div class="card"><h3>Lista de produtos</h3><input id="buscaProduto" placeholder="Pesquisar produto..." oninput="carregarTabelaProdutos()"><div class="tabela-wrap"><table id="tabelaProdutos"></table></div></div>
+</section>
+
+<section id="vendas" class="aba oculto"><div class="card"><h2>🧾 Histórico de vendas</h2><div class="tabela-wrap"><table id="tabelaVendas"></table></div></div></section>
+
+<section id="compras" class="aba oculto">
+ <div class="card"><h2>🛒 Registrar compra</h2>
+  <label>Produto</label><select id="selProdCompra"></select>
+  <label>Quantidade comprada</label><input type="number" id="qtdCompra" min="1">
+  <label>Total pago (R$)</label><input type="number" step="0.01" id="totalCompra">
+  <label>Fornecedor</label><input id="fornecedorCompra">
+  <button onclick="registrarCompra()">Salvar compra</button>
+ </div>
+ <div class="card"><h3>Histórico de compras</h3><div class="tabela-wrap"><table id="tabelaCompras"></table></div></div>
+</section>
+
+<section id="despesas" class="aba oculto">
+ <div class="card"><h2>💸 Registrar despesa</h2>
+  <label>Nome da despesa</label><input id="nomeDesp" placeholder="Ex.: Luz, água, aluguel">
+  <label>Valor (R$)</label><input type="number" step="0.01" id="valorDesp">
+  <button onclick="registrarDespesa()">Salvar despesa</button>
+ </div>
+ <div class="card"><h3>Lista de despesas</h3><div class="tabela-wrap"><table id="tabelaDespesas"></table></div></div>
+</section>
+
+<section id="fiado" class="aba oculto">
+ <div class="card"><h2>📋 Controle de fiado</h2>
+  <label>Nome do cliente</label><input id="nomeFiado">
+  <label>Descrição</label><input id="descFiado">
+  <label>Valor (R$)</label><input type="number" step="0.01" id="valorFiado">
+  <button onclick="adicionarFiado()">Adicionar fiado</button>
+ </div>
+ <div class="card"><h3>Registrar recebimento de fiado</h3>
+  <label>Conta do cliente</label><select id="selFiado"></select>
+  <label>Valor recebido (R$)</label><input type="number" step="0.01" id="valorRecebido">
+  <label>Forma de recebimento</label><select id="formaRecebimento"><option>Dinheiro</option><option>Pix</option><option>Cartão</option></select>
+  <button onclick="receberFiado()">Registrar recebimento</button>
+ </div>
+ <div class="card"><h3>Contas em aberto e histórico</h3><div class="tabela-wrap"><table id="tabelaFiados"></table></div></div>
+</section>
+
+<section id="relatorio" class="aba oculto">
+ <div class="card"><h2>📊 Relatório do dia</h2>
+  <p>Vendas: <b id="totalVendasDia">R$ 0,00</b></p>
+  <p>Recebimentos de fiado: <b id="totalRecebFiadoDia">R$ 0,00</b></p>
+  <p>Despesas: <b id="totalDespesasDia">R$ 0,00</b></p>
+  <p>Compras: <b id="totalComprasDia">R$ 0,00</b></p>
+  <p>Saldo do dia: <b id="lucroDia">R$ 0,00</b></p>
+  <button onclick="exportarBackup()">💾 Exportar backup</button>
+  <button class="sec" onclick="importarBackup()">📥 Importar backup</button>
+  <input type="file" id="arquivoBackup" accept=".json,application/json" class="oculto" onchange="carregarBackup(this)">
+ </div>
+ <div class="card"><h3>📚 Fechamentos anteriores</h3><div class="tabela-wrap"><table id="tabelaFechamentos"></table></div></div>
+</section>
+
+<script>
+const CHAVE='meuNegocioFacil';
+let dados=normalizarDados(JSON.parse(localStorage.getItem(CHAVE)||'null')||{produtos:[],vendas:[],compras:[],despesas:[],fiados:[],pagamentos:[],fechamentos:[]});
+let streamCamera=null, timerLeitor=null;
+
+function normalizarDados(d){
+ d=d||{};
+ return {produtos:Array.isArray(d.produtos)?d.produtos:[],vendas:Array.isArray(d.vendas)?d.vendas:[],
+ compras:Array.isArray(d.compras)?d.compras:[],despesas:Array.isArray(d.despesas)?d.despesas:[],
+ fiados:Array.isArray(d.fiados)?d.fiados:[],pagamentos:Array.isArray(d.pagamentos)?d.pagamentos:[],
+ fechamentos:Array.isArray(d.fechamentos)?d.fechamentos:[]};
+}
+function salvar(){localStorage.setItem(CHAVE,JSON.stringify(dados));}
+function hoje(){let d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function dinheiro(n){return (Number(n)||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});}
+function escapar(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function mudarAba(nome,el){document.querySelectorAll('.aba').forEach(x=>x.classList.add('oculto'));document.getElementById(nome).classList.remove('oculto');document.querySelectorAll('.tab').forEach(x=>x.classList.remove('ativo'));el.classList.add('ativo');carregarTudo();}
+function soma(arr,campo){return arr.reduce((s,x)=>s+(Number(x[campo])||0),0);}
+function vendasHoje(){return dados.vendas.filter(x=>x.data===hoje());}
+function comprasHoje(){return dados.compras.filter(x=>x.data===hoje());}
+function despesasHoje(){return dados.despesas.filter(x=>x.data===hoje());}
+function recebimentosHoje(){return dados.pagamentos.filter(x=>x.data===hoje());}
+function resumoDia(){
+ const vs=vendasHoje(), rs=recebimentosHoje();
+ const vendas=soma(vs.filter(v=>!v.cliente || !String(v.cliente).trim()),'valor');
+ const fiado=soma(rs,'valor'), despesas=soma(despesasHoje(),'valor'), compras=soma(comprasHoje(),'total');
+ return {vendas,fiado,despesas,compras,saldo:vendas+fiado-despesas-compras,vs,rs};
+}
+function carregarSelectProdutos(){
+ const opts=dados.produtos.map(p=>`<option value="${p.id}">${escapar(p.nome)} — ${dinheiro(p.venda)}</option>`).join('');
+ document.getElementById('selProduto').innerHTML=opts||'<option value="">Cadastre um produto</option>';
+ document.getElementById('selProdCompra').innerHTML=opts||'<option value="">Cadastre um produto</option>';
+ const abertos=dados.fiados.filter(f=>(Number(f.valor)||0)>(Number(f.pago)||0));
+ document.getElementById('selFiado').innerHTML=abertos.map(f=>`<option value="${f.id}">${escapar(f.cliente)} — ${escapar(f.descricao)} — falta ${dinheiro(f.valor-f.pago)}</option>`).join('')||'<option value="">Nenhum fiado em aberto</option>';
+}
+function cadastrarProduto(){
+ const nome=document.getElementById('nomeProd').value.trim(), qtd=Number(document.getElementById('qtdProd').value), venda=Number(document.getElementById('vendaProd').value);
+ if(!nome||!Number.isFinite(qtd)||qtd<0||venda<=0)return alert('Informe nome, quantidade válida e preço de venda.');
+ const codigo=document.getElementById('codProd').value.trim();
+ if(codigo && dados.produtos.some(p=>p.codigo===codigo))return alert('Esse código de barras já está cadastrado.');
+ dados.produtos.push({id:Date.now(),codigo,nome,custo:Number(document.getElementById('custoProd').value)||0,venda,qtd,min:Number(document.getElementById('minProd').value)||0});
+ salvar();document.getElementById('codProd').value='';document.getElementById('nomeProd').value='';document.getElementById('custoProd').value='';document.getElementById('vendaProd').value='';document.getElementById('qtdProd').value='';document.getElementById('minProd').value='';carregarTudo();alert('Produto cadastrado!');
+}
+function vender(){
+ const id=Number(document.getElementById('selProduto').value),qtd=Number(document.getElementById('qtdVenda').value),pag=document.getElementById('pagamento').value,cli=document.getElementById('clienteVenda').value.trim();
+ const p=dados.produtos.find(x=>Number(x.id)===id);
+ if(!p)return alert('Selecione um produto.');if(!Number.isInteger(qtd)||qtd<1)return alert('Informe uma quantidade válida.');if(Number(p.qtd)<qtd)return alert('Estoque insuficiente.');
+ p.qtd=Number(p.qtd)-qtd;
+ const data=hoje(),v={id:Date.now(),produtoId:p.id,produto:p.nome,qtd,valor:Number(p.venda)*qtd,custo:Number(p.custo||0)*qtd,pagamento:pag,cliente:cli,criadoEm:new Date().toISOString(),data};
+ dados.vendas.push(v);
+ if(cli){dados.fiados.push({id:Date.now()+1,cliente:cli,descricao:p.nome+' x'+qtd,valor:v.valor,pago:0,criadoEm:new Date().toISOString(),data});}
+ salvar();document.getElementById('clienteVenda').value='';document.getElementById('qtdVenda').value='1';carregarTudo();alert(cli?'Venda registrada como fiado.':'Venda registrada!');
+}
+function registrarCompra(){
+ const p=dados.produtos.find(x=>Number(x.id)===Number(document.getElementById('selProdCompra').value)),q=Number(document.getElementById('qtdCompra').value),total=Number(document.getElementById('totalCompra').value);
+ if(!p)return alert('Selecione um produto.');if(!Number.isInteger(q)||q<1||!Number.isFinite(total)||total<0)return alert('Confira quantidade e total.');
+ p.qtd=Number(p.qtd)+q;dados.compras.push({id:Date.now(),produtoId:p.id,produto:p.nome,qtd:q,total,fornecedor:document.getElementById('fornecedorCompra').value.trim(),criadoEm:new Date().toISOString(),data:hoje()});
+ salvar();carregarTudo();alert('Compra registrada e estoque atualizado.');
+}
+function registrarDespesa(){
+ const nome=document.getElementById('nomeDesp').value.trim(),valor=Number(document.getElementById('valorDesp').value);
+ if(!nome||!Number.isFinite(valor)||valor<=0)return alert('Informe nome e valor válido.');
+ dados.despesas.push({id:Date.now(),nome,valor,criadoEm:new Date().toISOString(),data:hoje()});salvar();document.getElementById('nomeDesp').value='';document.getElementById('valorDesp').value='';carregarTudo();alert('Despesa salva.');
+}
+function adicionarFiado(){
+ const cliente=document.getElementById('nomeFiado').value.trim(),descricao=document.getElementById('descFiado').value.trim(),valor=Number(document.getElementById('valorFiado').value);
+ if(!cliente||!descricao||!Number.isFinite(valor)||valor<=0)return alert('Preencha cliente, descrição e valor.');
+ dados.fiados.push({id:Date.now(),cliente,descricao,valor,pago:0,criadoEm:new Date().toISOString(),data:hoje()});salvar();document.getElementById('nomeFiado').value='';document.getElementById('descFiado').value='';document.getElementById('valorFiado').value='';carregarTudo();alert('Fiado adicionado.');
+}
+function receberFiado(){
+ const f=dados.fiados.find(x=>Number(x.id)===Number(document.getElementById('selFiado').value)),valor=Number(document.getElementById('valorRecebido').value),forma=document.getElementById('formaRecebimento').value;
+ if(!f)return alert('Selecione uma conta em aberto.');
+ const falta=Math.max(0,Number(f.valor)-Number(f.pago||0));
+ if(!Number.isFinite(valor)||valor<=0||valor>falta+0.0001)return alert('Informe um valor válido, até '+dinheiro(falta)+'.');
+ f.pago=Number(f.pago||0)+valor;
+ dados.pagamentos.push({id:Date.now(),fiadoId:f.id,cliente:f.cliente,forma,valor,criadoEm:new Date().toISOString(),data:hoje()});
+ salvar();document.getElementById('valorRecebido').value='';carregarTudo();alert('Recebimento de fiado registrado em '+forma+'.');
+}
+function fecharDia(){
+ const r=resumoDia();
+ if(dados.fechamentos.some(f=>f.data===hoje()))return alert('Já existe um fechamento para hoje. Para evitar duplicidade, não foi criado outro.');
+ if(!confirm('Registrar fechamento de hoje?\\n\\nVendas recebidas: '+dinheiro(r.vendas)+'\\nFiados recebidos: '+dinheiro(r.fiado)+'\\nDespesas: '+dinheiro(r.despesas)+'\\nCompras: '+dinheiro(r.compras)+'\\nSaldo: '+dinheiro(r.saldo)))return;
+ const porForma={Dinheiro:0,Pix:0,Cartão:0,naoInformado:0};
+ r.vs.forEach(v=>{if(v.cliente&&String(v.cliente).trim())return;const k=v.pagamento||'naoInformado';if(Object.prototype.hasOwnProperty.call(porForma,k))porForma[k]+=Number(v.valor)||0;else porForma.naoInformado+=Number(v.valor)||0;});
+ r.rs.forEach(p=>{const k=p.forma||'naoInformado';if(Object.prototype.hasOwnProperty.call(porForma,k))porForma[k]+=Number(p.valor)||0;else porForma.naoInformado+=Number(p.valor)||0;});
+ dados.fechamentos.unshift({id:Date.now(),data:hoje(),vendas:r.vendas,recebimentosFiado:r.fiado,dinheiro:porForma.Dinheiro,pix:porForma.Pix,cartao:porForma['Cartão'],naoInformado:porForma.naoInformado,despesas:r.despesas,compras:r.compras,saldo:r.saldo,criadoEm:new Date().toISOString()});
+ salvar();carregarTudo();alert('Fechamento do dia registrado!');
+}
+function carregarTabelaProdutos(){
+ const q=(document.getElementById('buscaProduto')?.value||'').toLowerCase(),t=document.getElementById('tabelaProdutos');
+ t.innerHTML='<tr><th>Produto</th><th>Estoque</th><th>Venda</th><th>Código</th></tr>'+dados.produtos.filter(p=>String(p.nome).toLowerCase().includes(q)||String(p.codigo||'').includes(q)).map(p=>`<tr><td>${escapar(p.nome)}</td><td class="${Number(p.qtd)<=Number(p.min||0)?'vermelho':''}">${Number(p.qtd)||0}</td><td>${dinheiro(p.venda)}</td><td>${escapar(p.codigo||'—')}</td></tr>`).join('');
+}
+function carregarTabelas(){
+ const tV=document.getElementById('tabelaVendas');tV.innerHTML='<tr><th>Data</th><th>Produto</th><th>Qtd</th><th>Valor</th><th>Pagamento</th><th>Cliente</th></tr>'+dados.vendas.slice().reverse().map(v=>`<tr><td>${escapar(v.data)}</td><td>${escapar(v.produto)}</td><td>${v.qtd}</td><td>${dinheiro(v.valor)}</td><td>${escapar(v.pagamento||'Fiado')}</td><td>${escapar(v.cliente||'—')}</td></tr>`).join('');
+ const tC=document.getElementById('tabelaCompras');tC.innerHTML='<tr><th>Data</th><th>Produto</th><th>Qtd</th><th>Total</th><th>Fornecedor</th></tr>'+dados.compras.slice().reverse().map(c=>`<tr><td>${escapar(c.data)}</td><td>${escapar(c.produto)}</td><td>${c.qtd}</td><td>${dinheiro(c.total)}</td><td>${escapar(c.fornecedor||'—')}</td></tr>`).join('');
+ const tD=document.getElementById('tabelaDespesas');tD.innerHTML='<tr><th>Data</th><th>Despesa</th><th>Valor</th></tr>'+dados.despesas.slice().reverse().map(d=>`<tr><td>${escapar(d.data)}</td><td>${escapar(d.nome)}</td><td>${dinheiro(d.valor)}</td></tr>`).join('');
+ const tF=document.getElementById('tabelaFiados');tF.innerHTML='<tr><th>Data</th><th>Cliente</th><th>Descrição</th><th>Valor</th><th>Pago</th><th>Falta</th></tr>'+dados.fiados.slice().reverse().map(f=>`<tr><td>${escapar(f.data)}</td><td>${escapar(f.cliente)}</td><td>${escapar(f.descricao)}</td><td>${dinheiro(f.valor)}</td><td>${dinheiro(f.pago)}</td><td>${dinheiro(Math.max(0,Number(f.valor)-Number(f.pago||0)))}</td></tr>`).join('');
+ const tFe=document.getElementById('tabelaFechamentos');tFe.innerHTML='<tr><th>Data</th><th>Vendas</th><th>Fiado recebido</th><th>Despesas</th><th>Compras</th><th>Saldo</th></tr>'+dados.fechamentos.slice().sort((a,b)=>String(b.data).localeCompare(String(a.data))).map(f=>`<tr><td>${escapar(f.data)}</td><td>${dinheiro(f.vendas)}</td><td>${dinheiro(f.recebimentosFiado||0)}</td><td>${dinheiro(f.despesas)}</td><td>${dinheiro(f.compras)}</td><td class="${Number(f.saldo)<0?'vermelho':'verde'}">${dinheiro(f.saldo)}</td></tr>`).join('');
+}
+function carregarRelatorio(){
+ const r=resumoDia();
+ document.getElementById('totalVendasDia').textContent=dinheiro(r.vendas);
+ document.getElementById('totalRecebFiadoDia').textContent=dinheiro(r.fiado);
+ document.getElementById('totalDespesasDia').textContent=dinheiro(r.despesas);
+ document.getElementById('totalComprasDia').textContent=dinheiro(r.compras);
+ const l=document.getElementById('lucroDia');l.textContent=dinheiro(r.saldo);l.className=r.saldo<0?'vermelho':'verde';
+ document.getElementById('resVendas').textContent=dinheiro(r.vendas);document.getElementById('resFiado').textContent=dinheiro(r.fiado);document.getElementById('resDespesas').textContent=dinheiro(r.despesas);document.getElementById('resCompras').textContent=dinheiro(r.compras);
+ const rs=document.getElementById('resSaldo');rs.textContent=dinheiro(r.saldo);rs.className='valor '+(r.saldo<0?'vermelho':'verde');
+}
+function carregarTudo(){carregarSelectProdutos();carregarTabelaProdutos();carregarTabelas();carregarRelatorio();}
+function exportarBackup(){
+ const pacote={versao:2,exportadoEm:new Date().toISOString(),dados};
+ const blob=new Blob([JSON.stringify(pacote,null,2)],{type:'application/json'});
+ const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='meu-negocio-facil-backup-'+hoje()+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function importarBackup(){document.getElementById('arquivoBackup').click();}
+function 
+async function carregarBackup(input){
+ const arq=input.files&&input.files[0];
+ if(!arq)return;
+
+ try{
+  const texto=await arq.text();
+  const obj=JSON.parse(texto);
+  const bruto=obj&&obj.dados&&typeof obj.dados==='object'?obj.dados:obj;
+
+  if(!bruto||typeof bruto!=='object'||Array.isArray(bruto)){
+   throw new Error('Formato de backup inválido.');
+  }
+
+  const chaves=['produtos','vendas','compras','despesas','fiados','pagamentos','fechamentos'];
+
+  if(!chaves.some(k=>Array.isArray(bruto[k]))){
+   throw new Error('O arquivo não contém dados reconhecidos do aplicativo.');
+  }
+
+  const novo=normalizarDados(bruto);
+
+  if(!confirm('A importação vai substituir os dados atualmente neste navegador. Você já exportou um backup recente?')){
+   return;
+  }
+
+  try{
+   localStorage.setItem(CHAVE,JSON.stringify(novo));
+  }catch(erro){
+   alert('O Chrome não conseguiu salvar os dados. Os dados atuais foram preservados. Não apague nada.');
+   return;
+  }
+
+  dados=novo;
+  carregarTudo();
+  alert('Backup importado com sucesso!');
+
+ }catch(e){
+  alert('Não foi possível importar o backup: '+e.message);
+ }finally{
+  input.value='';
+ }
+}
+carregarTudo();alert('Backup importado com sucesso!'); 
+  }catch(e){alert('Não foi possível ler esse backup. Confira se selecionou o arquivo JSON correto.');}
+  input.value='';
+ };
+ leitor.readAsText(arq);
+}
+async function iniciarLeitor(){
+ const video=document.getElementById('camera');
+ if(!('BarcodeDetector' in window)){alert('Este navegador não oferece leitura de código de barras integrada. Você pode digitar o código no campo.');return;}
+ try{
+  const detector=new BarcodeDetector({formats:['ean_13','ean_8','upc_a','upc_e','code_128','code_39','itf']});
+  streamCamera=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false});
+  video.srcObject=streamCamera;video.classList.remove('oculto');document.getElementById('pararCamera').classList.remove('oculto');await video.play();
+  timerLeitor=setInterval(async()=>{try{const codigos=await detector.detect(video);if(codigos.length){document.getElementById('codProd').value=codigos[0].rawValue;pararLeitor();alert('Código lido! Agora preencha os dados do produto.');}}catch(e){}},500);
+ }catch(e){alert('Erro da câmera: '+e.name+' - '+e.message);pararLeitor();}
+}
+function pararLeitor(){
+ if(timerLeitor){clearInterval(timerLeitor);timerLeitor=null;}
+ if(streamCamera){streamCamera.getTracks().forEach(t=>t.stop());streamCamera=null;}
+ const v=document.getElementById('camera');v.pause();v.srcObject=null;v.classList.add('oculto');document.getElementById('pararCamera').classList.add('oculto');
+}
+carregarTudo();
+</script>
+</body> <script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function() {
+    navigator.serviceWorker.register("./service-worker.js")
+      .then(function() {
+        console.log("Aplicativo preparado!");
+      })
+      .catch(function(error) {
+        console.log("Erro:", error);
+      });
+  });
+}
+</script>
+</html>
